@@ -5,8 +5,20 @@ const getAllContests = async (req, res) => {
     const { status, page = 1, limit = 10 } = req.query;
     const now = new Date();
     const query = {};
-    if (status === "active") query.endTime = { $gte: now };
-    else if (status === "past") query.endTime = { $lt: now };
+    
+    // Filter by status
+    if (status === "upcoming") {
+      // Contests that haven't started yet
+      query.startTime = { $gt: now };
+    } else if (status === "active") {
+      // Contests that are currently ongoing
+      query.startTime = { $lte: now };
+      query.endTime = { $gte: now };
+    } else if (status === "past") {
+      // Contests that have ended
+      query.endTime = { $lt: now };
+    }
+    
     const contests = await Contest.find(query)
       .populate("challenges", "title")
       .skip((page - 1) * limit)

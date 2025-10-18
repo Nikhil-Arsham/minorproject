@@ -15,7 +15,6 @@ import CreateContest from './pages/CreateContest';
 import Logout from './pages/Logout';
 import Profile from './pages/Profile';
 import Leaderboard from './pages/Leaderboard';
-import ContestLeaderboard from './pages/ContestLeaderboard';
 import ContestList from './pages/ContestList';
 import Problems from './pages/Problems';
 import CreateProblem from './pages/CreateProblem';
@@ -76,7 +75,6 @@ function App() {
           <Route path="/problem/:problemId" element={isLoggedIn ? <ProblemDetails user={user} /> : <Navigate to="/login" />} />
           <Route path="/profile" element={isLoggedIn ? <Profile user={user} /> : <Navigate to="/login" />} />
           <Route path="/logout" element={<Logout onLogout={handleLogout} />} />
-          <Route path="/contest/:contestId/leaderboard" element={<ContestLeaderboard user={user} />} />
           <Route path="/contest-list" element={<ContestList user={user} />} />
           <Route path="/problems" element={<Problems user={user} />} />
           <Route path="/admin" element={isLoggedIn && userRole === 'admin' ? <AdminPanel user={user} /> : <Navigate to="/" />} />

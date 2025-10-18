@@ -11,10 +11,16 @@ const Contests = ({ user }) => {
     const fetchContests = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('`${process.env.REACT_APP_API_URL}`/contests', {
-          params: { status: activeTab }
+        // Map frontend status to backend status
+        const statusParam = activeTab === 'ongoing' ? 'active' : activeTab;
+        
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/contests`, {
+          params: { status: statusParam }
         });
-        setContests(prev => ({ ...prev, [activeTab]: response.data || [] }));
+        
+        // Backend returns { contests: [...], pagination: {...} }
+        const contestsList = response.data.contests || [];
+        setContests(prev => ({ ...prev, [activeTab]: contestsList }));
       } catch (error) {
         console.error('Error fetching contests:', error);
         setContests(prev => ({ ...prev, [activeTab]: [] }));

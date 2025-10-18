@@ -3,6 +3,7 @@ const TestCase = require("../models/TestCase");
 const TestCaseResult = require("../models/TestCaseResult");
 const User = require("../models/User");
 const Challenge = require("../models/Challenge");
+const ContestParticipation = require("../models/ContestParticipation");
 const codeExecutor = require("../services/codeExecutor");
 const { checkAndAwardBadges } = require("../services/badgeService");
 
@@ -53,7 +54,8 @@ const submitCode = async (req, res) => {
       challengeId,
       code,
       language,
-      status: 'pending'
+      status: 'pending',
+      contestId: contestId || null
     });
     
     await submission.save();
@@ -88,6 +90,53 @@ const submitCode = async (req, res) => {
     submission.status = allPassed ? 'accepted' : 'wrong_answer';
     submission.score = testCases.length > 0 ? Math.round((passedCount / testCases.length) * 100) : 100;
     await submission.save();
+    
+    // Update contest participation if this is a contest submission
+    let contestParticipation = null;
+    if (contestId && allPassed) {
+      const challenge = await Challenge.findById(challengeId);
+      
+      // Find or create contest participation
+      contestParticipation = await ContestParticipation.findOne({
+        userId: req.user.id,
+        contestId
+      });
+      
+      if (!contestParticipation) {
+        contestParticipation = new ContestParticipation({
+          userId: req.user.id,
+          contestId,
+          totalScore: 0,
+          solvedProblems: [],
+          problemScores: []
+        });
+      }
+      
+      // Check if this problem was already solved in this contest
+      const alreadySolved = contestParticipation.solvedProblems.includes(challengeId);
+      
+      if (!alreadySolved) {
+        // Add problem points to total score
+        contestParticipation.solvedProblems.push(challengeId);
+        contestParticipation.totalScore += (challenge.points || 10);
+        contestParticipation.problemScores.push({
+          problemId: challengeId,
+          score: challenge.points || 10,
+          submissionCount: 1
+        });
+      } else {
+        // Already solved, just update submission count
+        const problemScore = contestParticipation.problemScores.find(
+          ps => ps.problemId.toString() === challengeId.toString()
+        );
+        if (problemScore) {
+          problemScore.submissionCount += 1;
+        }
+      }
+      
+      contestParticipation.updatedAt = new Date();
+      await contestParticipation.save();
+    }
     
     // Update user stats if problem is solved
     let achievements = [];
@@ -321,7 +370,9 @@ const submitCode = async (req, res) => {
       newStats: allPassed ? newStats : null,
       badges: allPassed ? updatedBadges : null,
       success: allPassed,
-      gamificationActive: true
+      gamificationActive: true,
+      contestScore: contestParticipation ? contestParticipation.totalScore : null,
+      contestParticipation: contestParticipation ? contestParticipation : null
     });
     
   } catch (error) {

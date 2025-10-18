@@ -29,6 +29,7 @@ require('./models/TestCase');
 require('./models/TestCaseResult');
 require('./models/Contest');
 require('./models/Announcement');
+require('./models/ContestParticipation');
 
 // Import routes
 const userRoutes = require('./routes/User');
@@ -39,6 +40,7 @@ const announcementRoutes = require('./routes/Announcement');
 const contestRoutes = require('./routes/Contest');
 const leaderboardRoutes = require('./routes/Leaderboard');
 const badgeRoutes = require('./routes/Badge');
+const contestParticipationRoutes = require('./routes/ContestParticipation');
 
 console.log('Mounting routes...');
 app.use('/api/users', userRoutes);
@@ -49,6 +51,7 @@ app.use('/api/announcements', announcementRoutes);
 app.use('/api/contests', contestRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/badges', badgeRoutes);
+app.use('/api/contest-participation', contestParticipationRoutes);
 
 // Test route
 app.get('/api/test', (req, res) => {

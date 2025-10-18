@@ -4,7 +4,10 @@ const testCaseSchema = new mongoose.Schema({
   challengeId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Challenge",
-    required: true,
+  },
+  contestId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Contest",
   },
   input: {
     type: String,
@@ -20,6 +23,14 @@ const testCaseSchema = new mongoose.Schema({
   },
 }, {
   timestamps: true
+});
+
+// Ensure at least one of challengeId or contestId is provided
+testCaseSchema.pre('save', function(next) {
+  if (!this.challengeId && !this.contestId) {
+    throw new Error('Either challengeId or contestId must be provided');
+  }
+  next();
 });
 
 module.exports = mongoose.model("TestCase", testCaseSchema);

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Editor from '@monaco-editor/react';
 
 const ProblemDetails = ({ user }) => {
   const { contestId, problemId } = useParams();
+  const navigate = useNavigate();
   const actualProblemId = problemId || contestId; // Handle both routes
   const [activeTab, setActiveTab] = useState('problem');
   const [code, setCode] = useState('// Write your solution here\nfunction solution() {\n    \n}');
@@ -46,10 +47,21 @@ const ProblemDetails = ({ user }) => {
 
       console.log('Submission response:', response.data);
 
-      const { status, score, passedTests, totalTests, message } = response.data;
+      const { status, score, passedTests, totalTests, message, contestScore } = response.data;
 
       if (status === 'accepted') {
-        alert(`🎉 ${message}\nScore: ${score}%\nPassed: ${passedTests}/${totalTests} test cases`);
+        let alertMessage = `🎉 ${message}\nScore: ${score}%\nPassed: ${passedTests}/${totalTests} test cases`;
+        if (contestScore !== null) {
+          alertMessage += `\n\n📊 Contest Score: +${response.data.contestParticipation?.problemScores?.[0]?.score || 0} points\nTotal: ${contestScore} points`;
+        }
+        alert(alertMessage);
+        
+        // Navigate back to contest problems after success
+        if (contestId) {
+          setTimeout(() => {
+            navigate(`/contest/${contestId}`);
+          }, 500);
+        }
       } else {
         alert(`❌ ${message}\nScore: ${score}%\nPassed: ${passedTests}/${totalTests} test cases`);
       }

@@ -12,11 +12,36 @@ const getTestCasesByChallenge = async (req, res) => {
   }
 };
 
+const getTestCasesByContest = async (req, res) => {
+  try {
+    const testCases = await TestCase.find({
+      contestId: req.params.id,
+      ...(req.user?.role !== "admin" ? { isHidden: false } : {}),
+    }).lean();
+    res.status(200).json(testCases);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 const createTestCase = async (req, res) => {
   try {
     const testCase = new TestCase({
       ...req.body,
       challengeId: req.params.id,
+    });
+    await testCase.save();
+    res.status(201).json(testCase);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const createContestTestCase = async (req, res) => {
+  try {
+    const testCase = new TestCase({
+      ...req.body,
+      contestId: req.params.id,
     });
     await testCase.save();
     res.status(201).json(testCase);
@@ -51,7 +76,9 @@ const deleteTestCase = async (req, res) => {
 
 module.exports = {
   getTestCasesByChallenge,
+  getTestCasesByContest,
   createTestCase,
+  createContestTestCase,
   updateTestCase,
   deleteTestCase,
 };
