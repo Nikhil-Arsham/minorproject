@@ -1,0 +1,8 @@
+.App {
+  text-align: left;
+}
+
+/* Remove any conflicting navbar styles since we're using Tailwind */
+.navbar {
+  /* Styles will be handled by Tailwind classes */
+}
